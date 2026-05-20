@@ -1,6 +1,9 @@
 import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { NextResponse } from "next/server";
 
+// Cấu hình thời gian tối đa chạy API lên 60 giây (Đặc quyền Vercel Pro)
+export const maxDuration = 60;
+
 // Khởi tạo Client ngoài hàm để tối ưu hóa reuse instance (Low latency)
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey });
@@ -61,7 +64,10 @@ CRITICAL RULES:
     });
 
     // Cấu hình khoảng thời gian bắt lỗi/timeout ngầm (Ví dụ: Chờ tối đa 12 giây)
-    const response = (await Promise.race([aiCall, timeoutDelay(12000)])) as GenerateContentResponse;
+    const response = (await Promise.race([
+      aiCall,
+      timeoutDelay(12000),
+    ])) as GenerateContentResponse;
     const responseText = response.text;
 
     return NextResponse.json({ roast: responseText });
