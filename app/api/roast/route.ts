@@ -1,14 +1,22 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { NextResponse } from "next/server";
 
-// 1. Khởi tạo Client ngoài hàm POST để tối ưu việc reuse instance (Low latency)
+// Khởi tạo Client ngoài hàm để tối ưu hóa reuse instance (Low latency)
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey });
+
+// Hàm helper tạo sự kiện Timeout chạy ngầm
+const timeoutDelay = (ms: number): Promise<never> => {
+  return new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("GOOGLE_API_TIMEOUT")), ms),
+  );
+};
 
 export const POST = async (request: Request) => {
   try {
     const { image } = await request.json();
 
+    // Xử lý Edge Case: Kiểm tra dữ liệu ảnh trống
     if (!image) {
       return NextResponse.json(
         { error: "Ủa rồi ảnh đâu sếp? Gửi chuỗi image giùm cái!" },
@@ -16,7 +24,7 @@ export const POST = async (request: Request) => {
       );
     }
 
-    // Tách phần dữ liệu Base64 thô và MimeType từ chuỗi client gửi lên
+    // Phẫu thuật chuỗi Base64 tách lấy dữ liệu thô và MimeType
     let base64Data = image;
     let mimeType = "image/jpeg";
 
@@ -28,9 +36,8 @@ export const POST = async (request: Request) => {
       }
     }
 
-    // 2. Gọi mô hình gemini-3.5-flash theo cú pháp của SDK mới
-    // Truyền trực tiếp dữ liệu ảnh inlineData vào mảng contents
-    const response = await ai.models.generateContent({
+    // Cấu hình SDK mới + Nhúng Prompt "Chê dạo" xéo sắc
+    const aiCall = ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: [
         {
@@ -41,7 +48,6 @@ export const POST = async (request: Request) => {
         },
         "Roast this setup in Vietnamese based on your system instructions.",
       ],
-      // Đưa luật "chê dạo" vào config.systemInstruction
       config: {
         systemInstruction: `You are a sarcastic, hyper-critical interior designer and tech-setup expert. 
 Analyze the provided image of a "setup" and give a roast response in Vietnamese.
@@ -54,16 +60,30 @@ CRITICAL RULES:
       },
     });
 
-    // Trích xuất kết quả text từ response object của SDK mới
+    // Cấu hình khoảng thời gian bắt lỗi/timeout ngầm (Ví dụ: Chờ tối đa 12 giây)
+    const response = (await Promise.race([aiCall, timeoutDelay(12000)])) as GenerateContentResponse;
     const responseText = response.text;
 
     return NextResponse.json({ roast: responseText });
-  } catch (error) {
-    console.error("Gemini SDK Error:", error);
+  } catch (error: unknown) {
+    console.error("Backend API Error:", error);
+
+    // Trả về thông báo vui nhộn nếu Google API nghẽn hoặc sập
+    if (error instanceof Error && error.message === "GOOGLE_API_TIMEOUT") {
+      return NextResponse.json(
+        {
+          error:
+            "AI mải nhìn đống dây điện lộn xộn của bạn nên nghẹt thở đột quỵ rồi. Thử lại sau nhé sếp!",
+        },
+        { status: 504 },
+      );
+    }
+
+    // Các lỗi hệ thống khác
     return NextResponse.json(
       {
         error:
-          "AI đang bận dọn bàn của nó rồi, hoặc kết nối bị nghẽn. Thử lại sau nhé sếp!",
+          "AI đang bận đi mua thêm mô hình rồi, hoặc kết nối bị nghẽn. Thử lại sau nha!",
       },
       { status: 500 },
     );
