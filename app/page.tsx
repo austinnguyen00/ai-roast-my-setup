@@ -14,7 +14,7 @@ const LOADING_PHRASES = [
   "Đang tính toán chi phí công thái học bằng niềm tin...",
 ];
 
-export default function Home() {
+const Home = () => {
   const [status, setStatus] = useState<AppStatus>("IDLE");
   const [image, setImage] = useState<string | null>(null);
   const [roastText, setRoastText] = useState<string>("");
@@ -191,8 +191,8 @@ export default function Home() {
         </p>
       </header>
 
-      <main className="w-full max-w-2xl flex flex-col items-center justify-center">
-        {/* CHẾ ĐỘ CHỜ / NÉN ẢNH (IDLE & COMPRESSING) */}
+      <main className="w-full max-w-xl flex flex-col items-center justify-center">
+        {/* CHẾ ĐỘ CHỜ / UPLOAD (IDLE) */}
         {(status === "IDLE" ||
           status === "COMPRESSING" ||
           status === "ERROR") &&
@@ -257,29 +257,30 @@ export default function Home() {
           </div>
         )}
 
-        {/* CHẾ ĐỘ THÀNH CÔNG - THẺ KẾT QUẢ SHAREABLE (SUCCESS) */}
+        {/* CHẾ ĐỘ THÀNH CÔNG - THẺ KẾT QUẢ POSTER DỌC (SUCCESS) */}
         {roastText && (status === "SUCCESS" || status === "LOADING") && (
           <div className="w-full flex flex-col gap-6">
-            {/* CONTAINER CHIẾC CARD ĐỂ DOWNLOAD */}
+            {/* CONTAINER CHIẾC CARD DẠNG POSTER DỌC ĐỂ DOWNLOAD */}
             <div
               ref={cardRef}
-              className="w-full bg-[#E3FAF5] border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row gap-6 items-stretch"
+              className="w-full bg-[#E3FAF5] border-4 border-black p-5 md:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-5"
             >
-              {/* Bên trái: Ảnh setup thu nhỏ dạng Neo-box */}
+              {/* Phần trên: Khung ảnh setup full-width bảo toàn tỷ lệ gốc (Không crop) */}
               {image && (
-                <div className="w-full md:w-2/5 border-4 border-black shrink-0 relative min-h-[200px] md:min-h-auto shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-full border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden bg-white flex items-center justify-center">
                   <NextImage
                     src={image}
                     alt="Setup preview"
-                    fill
+                    width={1200}
+                    height={900}
                     unoptimized
-                    className="object-cover"
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               )}
 
-              {/* Bên phải: Tích hợp Frosted Glass mờ cho phần Text để tôn chữ */}
-              <div className="w-full bg-white/70 backdrop-blur-md border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+              {/* Phần dưới: Tích hợp Frosted Glass mờ cho phần Text để tôn chữ */}
+              <div className="w-full bg-white/85 backdrop-blur-md border-4 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
                 <div>
                   <div className="border-b-2 border-dashed border-black pb-2 mb-4 flex justify-between items-center">
                     <span className="font-mono text-xs font-black bg-black text-white px-2 py-0.5">
@@ -328,4 +329,6 @@ export default function Home() {
       )}
     </div>
   );
-}
+};
+
+export default Home;
