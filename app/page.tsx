@@ -181,7 +181,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#FFFDF6] text-black font-sans p-4 md:p-8 flex flex-col items-center justify-center selection:bg-yellow-300">
       {/* HEADER PHONG CÁCH NEO-BRUTALISM */}
-      <header className="text-center mb-8 max-w-xl">
+      <header className="text-center mb-8 max-w-2xl">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight uppercase bg-yellow-300 border-4 border-black p-4 inline-block transform -rotate-1 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
           💥 AI Roast My Setup
         </h1>
@@ -191,7 +191,8 @@ const Home = () => {
         </p>
       </header>
 
-      <main className="w-full max-w-xl flex flex-col items-center justify-center">
+      {/* MAIN CONTENT */}
+      <main className="w-full max-w-2xl flex flex-col items-center justify-center">
         {/* CHẾ ĐỘ CHỜ / UPLOAD (IDLE) */}
         {(status === "IDLE" ||
           status === "COMPRESSING" ||
