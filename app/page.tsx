@@ -25,6 +25,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Hiệu ứng xoay vòng các câu sub-text vô tri khi đang loading
+  // sau mỗi 2.5 giây để tăng tính giải trí và giảm cảm giác chờ đợi
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (status === "LOADING") {
@@ -45,13 +46,13 @@ export default function Home() {
     }
   }, [errorMsg]);
 
-  // Hàm hiển thị thông báo lỗi nhanh
+  /** Hàm hiển thị thông báo lỗi nhanh */
   const triggerError = (msg: string) => {
     setErrorMsg(msg);
     setStatus("ERROR");
   };
 
-  // Logic xử lý nén ảnh bằng HTML5 Canvas (Client-side Compression)
+  /** Logic xử lý nén ảnh bằng HTML5 Canvas (Client-side Compression) */
   const processAndSetImage = (file: File) => {
     // 1. Kiểm tra Edge Case kích thước > 10MB
     if (file.size > 10 * 1024 * 1024) {
@@ -113,19 +114,21 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // Bắt sự kiện kéo thả & chọn file
+  /** Bắt sự kiện kéo thả & chọn file */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) processAndSetImage(e.target.files[0]);
   };
 
+  /** Bắt sự kiện kéo thả */
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
+  /** Bắt sự kiện thả file vào vùng drop */
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files?.[0]) processAndSetImage(e.dataTransfer.files[0]);
   };
 
-  // Gọi API Route gửi ảnh sang cho Gemini xử lý
+  /** Gọi API Route gửi ảnh sang cho Gemini xử lý */
   const handleStartRoast = async () => {
     if (!image) return;
     setStatus("LOADING");
@@ -152,7 +155,7 @@ export default function Home() {
     }
   };
 
-  // Logic kết xuất Card kết quả thành file ảnh PNG để share
+  /** Logic kết xuất Card kết quả thành file ảnh PNG để share */
   const downloadCardImage = async () => {
     if (!cardRef.current) return;
     try {
